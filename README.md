@@ -10,7 +10,7 @@ release notes, and running sprint planning.
 
 ```
 /plugin marketplace add craft-io-app/craft-io-plugins
-/plugin install craft-guru@craft-io
+/plugin install craft-guru@craft-io-app
 ```
 
 Then run `/mcp` and sign in to connect your Craft.io account.
@@ -31,7 +31,7 @@ No coding or technical setup required — this takes about a minute.
    ```
 3. Then install the plugin:
    ```
-   /plugin install craft-guru@craft-io
+   /plugin install craft-guru@craft-io-app
    ```
 4. Type `/mcp` and follow the prompt to sign in with your Craft.io account. This
    connects Claude to your own workspace — no admin setup needed.

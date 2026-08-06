@@ -1,5 +1,5 @@
 {
-  "name": "craft-io",
+  "name": "craft-io-app",
   "description": "Official Craft.io plugins for Claude Code: the Craft.io MCP connector plus guided skills for everyday product-management work.",
   "owner": {
     "name": "Craft.io",

@@ -35,7 +35,7 @@ version, each release reaches existing installs on their next update.
 
 ```
 /plugin marketplace add craft-io-app/craft-io-plugins
-/plugin install craft-guru@craft-io
+/plugin install craft-guru@craft-io-app
 ```
 
 ## Connecting to Craft.io
