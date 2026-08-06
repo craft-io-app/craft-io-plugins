@@ -10,7 +10,7 @@ jobs:
     name: structure and safety checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Validate marketplace, plugins and skills
         run: python3 .github/scripts/validate_plugins.py
 
@@ -23,8 +23,8 @@ jobs:
     # deliberately omitted `version` field, so --strict is not used here.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
       - run: npm install -g @anthropic-ai/claude-code
