@@ -1,0 +1,32 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  structure:
+    name: structure and safety checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate marketplace, plugins and skills
+        run: python3 .github/scripts/validate_plugins.py
+
+  manifests:
+    name: claude plugin validate
+    runs-on: ubuntu-latest
+    # Informational: the official validator is the same check Anthropic's
+    # community-marketplace review runs. It is not a merge gate, because it needs
+    # the Claude Code CLI and can change between releases. Note it warns about the
+    # deliberately omitted `version` field, so --strict is not used here.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install -g @anthropic-ai/claude-code
+      - run: claude plugin validate .
+      - run: claude plugin validate ./plugins/craft-guru
