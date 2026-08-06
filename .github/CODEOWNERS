@@ -1,9 +1,11 @@
-# Every change to this public marketplace needs a review.
-*                       @craft-io-app/product
+# This marketplace is public: anything merged here is installable by customers
+# within minutes. Every change needs a review.
+*                       @craft-io-app/product @craft-io-app/be
 
-# Anything that changes what gets installed, or the security promise.
-/.claude-plugin/                @craft-io-app/product
-/plugins/*/.mcp.json            @craft-io-app/product
-/plugins/*/.claude-plugin/      @craft-io-app/product
-/.github/                       @craft-io-app/product
-/SECURITY.md                    @craft-io-app/product
+# Anything that changes what gets installed, or the security promise in
+# SECURITY.md. Read CONTRIBUTING.md before approving one of these.
+/.claude-plugin/                @craft-io-app/product @craft-io-app/be
+/plugins/*/.mcp.json            @craft-io-app/product @craft-io-app/be
+/plugins/*/.claude-plugin/      @craft-io-app/product @craft-io-app/be
+/.github/                       @craft-io-app/product @craft-io-app/be
+/SECURITY.md                    @craft-io-app/product @craft-io-app/be
