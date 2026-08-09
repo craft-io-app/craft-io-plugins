@@ -81,7 +81,6 @@ craft-io-plugins/
         ├── break-to-stories/SKILL.md
         ├── feedback-analyzer/SKILL.md
         ├── find-related-items/SKILL.md
-        ├── identify-blockers/SKILL.md
         ├── release-notes/SKILL.md
         └── sprint-planning/SKILL.md
 ```
