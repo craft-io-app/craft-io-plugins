@@ -48,10 +48,16 @@ Those two manifests **must** set it, and CI fails if they don't. So a new skill
 needs a version bump in those two files and no edit at all to the Claude
 manifest. It is an asymmetry, not an oversight.
 
+CI enforces the bump, not just the field. If a PR touches `skills/` or
+`.mcp.json`, `check_version_bump.py` requires the Cursor and Gemini `version` to
+differ from the base branch. Without it, forgetting the bump ships your skill to
+Claude Code users and to nobody else, with every other check still green.
+
 ## Run the checks
 
 ```
 python3 .github/scripts/validate_plugins.py       # structure, safety, cross-manifest parity
+python3 .github/scripts/check_version_bump.py     # shared asset changed => Cursor/Gemini version bumped
 python3 .github/scripts/test_validate_plugins.py  # proves those rules actually fire
 claude plugin validate .
 claude plugin validate ./plugins/craft-guru

@@ -84,6 +84,7 @@ which would weaken your defaults, not strengthen them.
 
 ```
 python3 .github/scripts/validate_plugins.py       # structural + safety checks
+python3 .github/scripts/check_version_bump.py     # every client gets the same content
 python3 .github/scripts/test_validate_plugins.py  # proves those checks actually fire
 claude plugin validate .                          # marketplace manifest
 claude plugin validate ./plugins/craft-guru       # plugin manifest

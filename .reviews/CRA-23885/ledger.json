@@ -43,6 +43,25 @@
       "discovery": "fix round \u2014 no new discovery pass",
       "harness": "reachable \u2014 validate_plugins.py exit 0; new test_validate_plugins.py 26/26 pass; claude plugin validate . and ./plugins/craft-guru both pass with the one deliberate version warning",
       "seam": "re-run \u2014 endpoint parity now enforced bidirectionally and on the Cursor-referenced config"
+    },
+    {
+      "round": 3,
+      "type": "DELTA",
+      "weight": "LIGHT",
+      "date": "2026-08-09",
+      "intent": "worktree",
+      "repos": [
+        {
+          "root": "craft-io-plugins",
+          "branch": "craft-guru/multi-client-manifests",
+          "base": "0753f8b6115f723c1fbcc91136d827175b7b43e8",
+          "anchor": "worktree@2026-08-09",
+          "scope_note": "self-audit of round 2's own fix; re-anchor after push"
+        }
+      ],
+      "discovery": "self-audit \u2014 probed round 2's fix for the defect class it was fixing",
+      "harness": "reachable \u2014 32/32 mutations (26 validator + 6 version-bump)",
+      "seam": "unchanged"
     }
   ],
   "findings": [
@@ -279,6 +298,24 @@
       "fix": "Install once in each client before announcing: Cursor via /plugin marketplace add, Gemini via extensions link. Confirm the six skills and the craft-io MCP server both appear.",
       "verify": "manual \u2014 install in Cursor 3.13+ and Gemini CLI, confirm 6 skills and the craft-io server load",
       "closed_in_round": null
+    },
+    {
+      "id": "F-014",
+      "round_found": 3,
+      "status": "closed",
+      "class": "non-blocking",
+      "category": "correctness",
+      "severity": "MEDIUM",
+      "title": "Round 2's own fix documented a version-bump rule that nothing enforced",
+      "file": "CONTRIBUTING.md",
+      "sources": [
+        "self-audit"
+      ],
+      "evidence": "Round 2 made `version` REQUIRED on the Cursor and Gemini manifests but never required it to CHANGE. Proved by adding a skill with no bump: validator exit 0. The skill would reach Claude Code users (version from commit SHA) and no Cursor or Gemini user, with CI green \u2014 the same defect class as round 1's finding, reintroduced by the fix for it.",
+      "fix": "Added .github/scripts/check_version_bump.py, run on pull_request with fetch-depth 0. A change under skills/ or to .mcp.json requires the Cursor and Gemini versions to differ from the base branch. Reports SKIPPED, not passed, when the base ref cannot be resolved.",
+      "verify": "python3 .github/scripts/test_validate_plugins.py  # 6 version-bump cases, incl. bump-only-one and docs-only",
+      "closed_in_round": 3,
+      "resolution": "Closed. Also surfaced a latent portability bug while testing: `str | None` annotations are 3.10+ at runtime and this repo's checks must run on a contributor's stock python3 (3.9 on current macOS). Caught only because the suite includes cases that expect SUCCESS \u2014 the failure made the script exit non-zero, which the negative cases would have read as a pass."
     }
   ],
   "false_positives_rejected": [],
