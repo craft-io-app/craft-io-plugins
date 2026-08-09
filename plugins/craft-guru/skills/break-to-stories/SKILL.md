@@ -1,7 +1,7 @@
 ---
 name: break-to-stories
 description: |
-  Breaks a PRD, feature spec, or Craft item into well-structured, sprint-ready child stories through guided discovery. Use whenever a user wants to decompose a PRD, feature, or initiative into stories — even phrased casually as "break this into stories", "create stories from this PRD", "decompose this feature", "turn this into tickets", "split this into tasks", or "make work items from this". Works for product managers in any industry or domain.
+  Breaks a PRD, feature spec, or Craft item into well-structured, sprint-ready child stories through guided discovery. Use whenever a user wants to decompose a PRD, feature, or initiative into stories — even phrased casually as "break this into stories", "create stories from this PRD", "decompose this feature", "turn this into tickets", "split this into tasks", or "make work items from this". Trigger proactively when PRD content is shared and the user seems to want actionable work items. Works for product managers in any industry or domain.
 ---
 # Break PRD to Stories — Guru Edition
 
