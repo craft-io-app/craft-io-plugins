@@ -18,7 +18,6 @@ product-management tasks.
 - `break-to-stories` — Breaks a PRD, feature spec or Craft item into well-structured, sprint-ready child stories through guided discovery.
 - `feedback-analyzer` — Analyzes customer and user feedback from Craft feedback portals to surface the most impactful problems to solve.
 - `find-related-items` — Finds items across Craft workspaces related to a given item (duplicates, adjacent work, thematic overlap) and documents the relationships.
-- `identify-blockers` — Identifies cross-item blockers within a planned set of work and documents dependency relationships to prevent scheduling conflicts.
 - `release-notes` — Writes customer-facing product release notes for a new feature or release through a structured guided workflow.
 - `sprint-planning` — Runs a full sprint/iteration planning workflow: capacity review, goal synthesis, story point estimation, load balancing and risk identification.
 
