@@ -3,7 +3,7 @@ name: release-notes
 description: |
   Writes customer-facing product release notes for a new feature or release through a structured guided workflow. Use whenever the user wants to write, draft, or generate release notes, create a help center or changelog article, announce a new feature, or document what's new in a release. Works for product managers in any industry or domain.
 
-  Trigger on: "write release notes", "create release notes", "draft release notes", "release notes for [feature]", "help me announce [feature]", "write a changelog entry", or any request to produce a customer-facing feature announcement. Use proactively when someone describes a shipped or nearly-shipped feature and seems to want it documented for customers.
+  Trigger on: "write release notes", "create release notes", "draft release notes", "release notes for [feature]", "help me announce [feature]", "write a changelog entry", or any request to produce a customer-facing feature announcement.
 ---
 # Release Notes — Guru Edition
 
