@@ -28,16 +28,16 @@
       "type": "DELTA",
       "weight": "FULL",
       "date": "2026-08-09",
-      "intent": "worktree",
+      "intent": "origin",
       "repos": [
         {
           "root": "craft-io-plugins",
           "branch": "craft-guru/multi-client-manifests",
           "base": "0753f8b6115f723c1fbcc91136d827175b7b43e8",
-          "anchor": "worktree@2026-08-09",
+          "anchor": "49afdd0",
           "files": 14,
           "lines": "+497/-87 vs origin/main",
-          "scope_note": "fix round for round 1's findings. Anchor is a working tree \u2014 re-resolve to the pushed SHA after commit, or round 3 cannot compute a delta."
+          "scope_note": "fix round for round 1's findings, pushed as 49afdd0. Round 3 deltas from here. Written and verified by the same session that reviewed round 1 \u2014 not an independent confirmation."
         }
       ],
       "discovery": "fix round \u2014 no new discovery pass",
@@ -248,7 +248,7 @@
     {
       "id": "F-012",
       "round_found": 1,
-      "status": "open",
+      "status": "closed",
       "class": "non-blocking",
       "category": "process",
       "severity": "NIT",
@@ -260,8 +260,8 @@
       "evidence": "Commit 04fe983 and the PR title say CRK-28380; the ticket is CRA-23885. `git log --grep=CRA-23885` returns 0 commits, so this change is not discoverable from the ticket and scope had to be resolved from the PR branch instead.",
       "fix": "Amend the commit message and PR title to CRA-23885.",
       "verify": "git log origin/main..HEAD --grep=CRA-23885 --oneline | grep -q .",
-      "closed_in_round": null,
-      "resolution": "NOT FIXED \u2014 the commit is already pushed; amending it rewrites published history. Author's call."
+      "closed_in_round": 2,
+      "resolution": "Fix commit 49afdd0 carries CRA-23885 and the PR title was corrected, so git log --grep=CRA-23885 now finds the work. Commit 04fe983 keeps its wrong key by decision \u2014 amending it would rewrite published history."
     },
     {
       "id": "F-013",
