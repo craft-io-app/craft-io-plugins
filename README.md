@@ -62,7 +62,7 @@ No coding or technical setup required — this takes about a minute.
 
 ## What gets installed
 
-One MCP connector and seven skills. Nothing else — no hooks, no agents, no
+One MCP connector and six skills. Nothing else — no hooks, no agents, no
 scripts, nothing that runs code on your machine. See [SECURITY.md](SECURITY.md)
 for the full picture, including the one trust boundary worth understanding before
 you point these skills at customer feedback.
