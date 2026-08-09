@@ -1,4 +1,4 @@
-# Craft.io plugins for Claude Code
+# Craft.io plugins for Claude Code 
 
 The official Claude Code plugin marketplace for [Craft.io](https://www.craft.io).
 It ships the **craft-guru** plugin: the Craft.io MCP connector plus guided skills
