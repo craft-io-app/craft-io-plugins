@@ -1,13 +1,20 @@
 # This marketplace is public: anything merged here is installable by customers
 # within minutes. Every change needs a review.
-*                       @craft-io-app/product @craft-io-app/be
+*                                   @craft-io-app/product @craft-io-app/be
 
 # Anything that changes what gets installed, or the security promise in
 # SECURITY.md. Read CONTRIBUTING.md before approving one of these.
-/.claude-plugin/                @craft-io-app/product @craft-io-app/be
-/plugins/*/.mcp.json            @craft-io-app/product @craft-io-app/be
-/plugins/*/.claude-plugin/      @craft-io-app/product @craft-io-app/be
-/plugins/*/gemini-extension.json    @craft-io-app/product @craft-io-app/be
+/.claude-plugin/                    @craft-io-app/product @craft-io-app/be
+/.cursor-plugin/                    @craft-io-app/product @craft-io-app/be
+/plugins/*/.mcp.json                @craft-io-app/product @craft-io-app/be
+/plugins/*/.claude-plugin/          @craft-io-app/product @craft-io-app/be
 /plugins/*/.cursor-plugin/          @craft-io-app/product @craft-io-app/be
-/.github/                       @craft-io-app/product @craft-io-app/be
-/SECURITY.md                    @craft-io-app/product @craft-io-app/be
+/plugins/*/gemini-extension.json    @craft-io-app/product @craft-io-app/be
+
+# Ships to users as agent-visible instructions: skills load on demand, GEMINI.md
+# is always-on context for every Gemini CLI session.
+/plugins/*/skills/                  @craft-io-app/product @craft-io-app/be
+/plugins/*/GEMINI.md                @craft-io-app/product @craft-io-app/be
+
+/.github/                           @craft-io-app/product @craft-io-app/be
+/SECURITY.md                        @craft-io-app/product @craft-io-app/be

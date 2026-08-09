@@ -3,3 +3,11 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+__pycache__/
+
+# Code-review bundles are local working artifacts. The per-ticket ledger is the
+# one part that is shared state, so it is tracked; the reports are not.
+.reviews/*
+!.reviews/*/
+.reviews/*/*
+!.reviews/*/ledger.json

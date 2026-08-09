@@ -1,8 +1,11 @@
 {
   "name": "craft-guru",
   "displayName": "Craft.io",
-  "description": "Craft.io MCP connector plus guided product-work skills: generate PRDs, break them into stories, analyze customer feedback, find related items, identify blockers, write release notes, and run sprint planning.",
+  "description": "Craft.io MCP connector plus guided product-work skills: generate PRDs, break them into stories, analyze customer feedback, find related items, write release notes, and run sprint planning.",
   "version": "0.1.0",
+  "minClientVersions": {
+    "cursor": "3.13.0"
+  },
   "author": {
     "name": "Craft.io",
     "url": "https://www.craft.io"
@@ -10,7 +13,7 @@
   "homepage": "https://www.craft.io",
   "repository": "https://github.com/craft-io-app/craft-io-plugins",
   "license": "MIT",
-  "keywords": ["craft.io", "product-management", "prd", "stories", "feedback", "dependencies", "release-notes", "sprint-planning"],
+  "keywords": ["craft.io", "product-management", "prd", "stories", "feedback", "release-notes", "sprint-planning"],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json"
 }

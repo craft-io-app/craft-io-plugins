@@ -1,7 +1,7 @@
 {
   "name": "craft-guru",
   "version": "0.1.0",
-  "description": "Craft.io MCP connector plus guided product-work skills: generate PRDs, break them into stories, analyze customer feedback, find related items, identify blockers, write release notes, and run sprint planning.",
+  "description": "Craft.io MCP connector plus guided product-work skills: generate PRDs, break them into stories, analyze customer feedback, find related items, write release notes, and run sprint planning.",
   "mcpServers": {
     "craft-io": {
       "httpUrl": "https://mcp.craft.io/mcp"
