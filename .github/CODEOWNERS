@@ -7,5 +7,7 @@
 /.claude-plugin/                @craft-io-app/product @craft-io-app/be
 /plugins/*/.mcp.json            @craft-io-app/product @craft-io-app/be
 /plugins/*/.claude-plugin/      @craft-io-app/product @craft-io-app/be
+/plugins/*/gemini-extension.json    @craft-io-app/product @craft-io-app/be
+/plugins/*/.cursor-plugin/          @craft-io-app/product @craft-io-app/be
 /.github/                       @craft-io-app/product @craft-io-app/be
 /SECURITY.md                    @craft-io-app/product @craft-io-app/be

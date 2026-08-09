@@ -50,6 +50,41 @@ No coding or technical setup required — this takes about a minute.
    example, *"generate a PRD for this feature"* or *"check our dependencies for
    blockers"*.
 
+### In Cursor
+
+Cursor plugin support reads `plugins/craft-guru/.cursor-plugin/plugin.json` and
+`marketplace.json`. Installing directly from this repo's subdirectory (rather
+than a dedicated single-plugin repo) hasn't been hands-on verified against a
+real Cursor build yet — treat the install path below as provisional until
+that's confirmed:
+
+```
+/plugin marketplace add craft-io-app/craft-io-plugins
+/plugin install craft-guru@craft-io-app
+```
+
+If subdirectory installs aren't supported, the fallback is to point Cursor's
+"add marketplace" flow at `plugins/craft-guru` specifically once that's
+confirmed. This section will be updated once verified — coming soon.
+
+### In Gemini CLI
+
+The `craft-guru` extension manifest (`gemini-extension.json`) lives at
+`plugins/craft-guru/`, not at the repo root. Gemini CLI's documented install
+flow (`gemini extensions install <source>`) expects the manifest at the
+extension's root directory, and subdirectory-of-a-monorepo installs haven't
+been hands-on verified yet. Until that's confirmed, the safer path is a local
+clone plus a link:
+
+```
+git clone https://github.com/craft-io-app/craft-io-plugins
+gemini extensions link craft-io-plugins/plugins/craft-guru
+```
+
+A direct `gemini extensions install https://github.com/craft-io-app/craft-io-plugins`
+may or may not work depending on whether Gemini CLI resolves a subdirectory —
+this section will be updated once verified. Coming soon.
+
 ### Troubleshooting
 
 - **Don't see the plugin after adding the marketplace?** Check you typed
@@ -62,7 +97,7 @@ No coding or technical setup required — this takes about a minute.
 
 ## What gets installed
 
-One MCP connector and seven skills. Nothing else — no hooks, no agents, no
+One MCP connector and six skills. Nothing else — no hooks, no agents, no
 scripts, nothing that runs code on your machine. See [SECURITY.md](SECURITY.md)
 for the full picture, including the one trust boundary worth understanding before
 you point these skills at customer feedback.
@@ -74,14 +109,18 @@ craft-io-plugins/
 ├── .claude-plugin/marketplace.json   # marketplace catalog
 └── plugins/craft-guru/
     ├── .claude-plugin/plugin.json
-    ├── .mcp.json                     # Craft.io MCP connector
+    ├── .cursor-plugin/
+    │   ├── plugin.json
+    │   └── marketplace.json
+    ├── .mcp.json                     # Craft.io MCP connector (Claude Code, Cursor)
+    ├── gemini-extension.json         # Craft.io MCP connector (Gemini CLI)
+    ├── GEMINI.md
     ├── README.md
     └── skills/
         ├── prd-generator/SKILL.md
         ├── break-to-stories/SKILL.md
         ├── feedback-analyzer/SKILL.md
         ├── find-related-items/SKILL.md
-        ├── identify-blockers/SKILL.md
         ├── release-notes/SKILL.md
         └── sprint-planning/SKILL.md
 ```

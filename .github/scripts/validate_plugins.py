@@ -24,6 +24,17 @@ EXECUTABLE_COMPONENTS = ("hooks", "bin", "agents", "monitors", ".lsp.json", "set
 
 ALLOWED_MCP_KEYS = {"type", "url", "command", "args", "env", "headers"}
 
+# Gemini CLI's extension mcpServers schema (docs/extensions/reference.md +
+# docs/tools/mcp-server.md in google-gemini/gemini-cli). Extensions support every
+# MCP server config key documented there EXCEPT `trust` — that one is explicitly
+# called out as unsupported for extensions (it would let an extension silently
+# bypass tool-call confirmations), so it is deliberately left out of this set.
+ALLOWED_GEMINI_MCP_KEYS = {
+    "command", "url", "httpUrl", "args", "headers", "env", "cwd", "timeout",
+    "includeTools", "excludeTools", "authProviderType", "targetAudience",
+    "targetServiceAccount", "oauth",
+}
+
 errors: list[str] = []
 warnings: list[str] = []
 
@@ -104,6 +115,26 @@ def check_marketplace() -> list[Path]:
     return dirs
 
 
+def check_mcp_servers(rel: Path, servers: dict, url_key: str = "url") -> None:
+    """Shared MCP-server validation. url_key lets callers with a different transport
+    field name (e.g. Gemini's `httpUrl`) reuse the same rules."""
+    for server, cfg in servers.items():
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", server):
+            err(
+                f"{rel}: MCP server name {server!r} must be lower-case kebab-case. Other "
+                "characters are rewritten in the mcp__<server>__<tool> prefix, so user "
+                "permission rules stop matching."
+            )
+        if "command" in cfg:
+            err(
+                f"{rel}: MCP server {server!r} declares `command`, which runs a local process. "
+                "Only remote http/sse servers belong in this marketplace."
+            )
+        url = cfg.get(url_key, "") or cfg.get("url", "")
+        if url and not url.startswith("https://"):
+            err(f"{rel}: MCP server {server!r} url is not https: {url}")
+
+
 def check_plugin(d: Path) -> None:
     rel = d.relative_to(ROOT)
     manifest = load_json(d / ".claude-plugin" / "plugin.json")
@@ -128,25 +159,71 @@ def check_plugin(d: Path) -> None:
             )
 
     mcp_path = d / ".mcp.json"
+    claude_mcp_servers: dict = {}
     if mcp_path.exists():
         mcp = load_json(mcp_path) or {}
-        for server, cfg in (mcp.get("mcpServers") or {}).items():
-            if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", server):
-                err(
-                    f"{rel}: MCP server name {server!r} must be lower-case kebab-case. Other "
-                    "characters are rewritten in the mcp__<server>__<tool> prefix, so user "
-                    "permission rules stop matching."
-                )
-            if "command" in cfg:
-                err(
-                    f"{rel}: MCP server {server!r} declares `command`, which runs a local process. "
-                    "Only remote `http`/`sse` servers belong in this marketplace."
-                )
-            url = cfg.get("url", "")
-            if url and not url.startswith("https://"):
-                err(f"{rel}: MCP server {server!r} url is not https: {url}")
+        claude_mcp_servers = mcp.get("mcpServers") or {}
+        check_mcp_servers(rel, claude_mcp_servers)
+        for server, cfg in claude_mcp_servers.items():
             for key in set(cfg) - ALLOWED_MCP_KEYS:
                 warn(f"{rel}: MCP server {server!r} has unrecognized key `{key}`")
+
+    gemini_path = d / "gemini-extension.json"
+    if gemini_path.exists():
+        gem = load_json(gemini_path) or {}
+        if "name" not in gem:
+            err(f"{rel}: gemini-extension.json missing `name`")
+        if "description" not in gem:
+            err(f"{rel}: gemini-extension.json missing `description`")
+        gem_servers = gem.get("mcpServers") or {}
+        check_mcp_servers(rel, gem_servers, url_key="httpUrl")
+        for server, cfg in gem_servers.items():
+            for key in set(cfg) - ALLOWED_GEMINI_MCP_KEYS:
+                warn(f"{rel}: gemini-extension.json MCP server {server!r} has unrecognized key `{key}`")
+        # Cross-check endpoint parity with .mcp.json instead of raw JSON equality —
+        # the two manifests use different field names (url vs httpUrl) by design.
+        for server, cfg in gem_servers.items():
+            claude_cfg = claude_mcp_servers.get(server)
+            if claude_cfg is None:
+                err(f"{rel}: gemini-extension.json declares MCP server {server!r} not present in .mcp.json")
+                continue
+            gem_url = cfg.get("httpUrl") or cfg.get("url")
+            claude_url = claude_cfg.get("url")
+            if gem_url and claude_url and gem_url != claude_url:
+                err(
+                    f"{rel}: gemini-extension.json server {server!r} endpoint {gem_url!r} "
+                    f"does not match .mcp.json's {claude_url!r} — keep them in sync."
+                )
+        ctx = gem.get("contextFileName")
+        if ctx and not (d / ctx).is_file():
+            err(f"{rel}: gemini-extension.json contextFileName {ctx!r} does not exist")
+
+    cursor_plugin_path = d / ".cursor-plugin" / "plugin.json"
+    if cursor_plugin_path.exists():
+        cp = load_json(cursor_plugin_path) or {}
+        if "name" not in cp:
+            err(f"{rel}: .cursor-plugin/plugin.json missing `name`")
+        if "description" not in cp:
+            err(f"{rel}: .cursor-plugin/plugin.json missing `description`")
+        # Field names per cursor/plugins' own manifests (continual-learning, gmail):
+        # `skills` points at a directory, `mcpServers` at an MCP config file — both
+        # resolved relative to the plugin root (one level up from .cursor-plugin/),
+        # confirmed by fetching real plugin.json files from that repo.
+        for field, expect_dir in (("skills", True), ("mcpServers", False)):
+            ref = cp.get(field)
+            if not ref:
+                continue
+            target = (d / ref).resolve()
+            ok = target.is_dir() if expect_dir else target.is_file()
+            if not ok:
+                err(
+                    f"{rel}: .cursor-plugin/plugin.json `{field}` path {ref!r} does not resolve to a "
+                    f"{'directory' if expect_dir else 'file'}: {target}"
+                )
+
+    cursor_mp_path = d / ".cursor-plugin" / "marketplace.json"
+    if cursor_mp_path.exists():
+        load_json(cursor_mp_path)  # just structural/JSON validity for now
 
     skills = sorted((d / "skills").glob("*/"))
     if not skills:
