@@ -1,7 +1,7 @@
 ---
 name: prd-generator
 description: |
-  Generates a PRD through a structured guided discovery workflow using Craft MCP tools + interactive questioning. Use whenever a user wants to generate a PRD, write product requirements, document a feature/initiative, or run product discovery — across any industry or domain. Trigger on: "generate PRD", "write a PRD", "product requirements", "run discovery", "help me think through this feature", "let's kick off discovery", or any request to document a product problem as a structured artifact. Use proactively when someone describes a product idea and seems to want it structured — even without saying "PRD".
+  Generates a PRD through a structured guided discovery workflow using Craft MCP tools + interactive questioning. Use whenever a user wants to generate a PRD, write product requirements, document a feature/initiative, or run product discovery — across any industry or domain. Trigger on: "generate PRD", "write a PRD", "product requirements", "run discovery", "help me think through this feature", "let's kick off discovery", or any request to document a product problem as a structured artifact.
 ---
 # PRD Generator — Guru Edition
 
