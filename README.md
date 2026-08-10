@@ -1,10 +1,13 @@
-# Craft.io plugins for Claude Code 
+# Craft.io plugins
 
-The official Claude Code plugin marketplace for [Craft.io](https://www.craft.io).
-It ships the **craft-guru** plugin: the Craft.io MCP connector plus guided skills
-for everyday product-management work — writing PRDs, breaking them into stories,
-analyzing customer feedback, finding related items, identifying blockers, writing
-release notes, and running sprint planning.
+The official plugin marketplace for [Craft.io](https://www.craft.io), for Claude
+Code, Cursor and Gemini CLI. It ships the **craft-guru** plugin: the Craft.io MCP
+connector plus guided skills for everyday product-management work — writing PRDs,
+breaking them into stories, analyzing customer feedback, finding related items,
+writing release notes, and running sprint planning.
+
+One set of skills and one connector definition, read by every client. Nothing is
+forked per client; each one gets a thin manifest pointing at the same files.
 
 ## Install
 
@@ -47,8 +50,43 @@ No coding or technical setup required — this takes about a minute.
    `/plugin install` commands shown above.
 3. Connect your own Craft.io account when prompted.
 4. Start using the skills by describing what you want in plain English — for
-   example, *"generate a PRD for this feature"* or *"check our dependencies for
-   blockers"*.
+   example, *"generate a PRD for this feature"* or *"analyze our feedback and
+   tell me what to prioritize"*.
+
+### In Cursor
+
+Cursor reads the catalog at `.cursor-plugin/marketplace.json` in this repo's
+root, the same way Claude Code reads `.claude-plugin/marketplace.json`:
+
+```
+/plugin marketplace add craft-io-app/craft-io-plugins
+/plugin install craft-guru@craft-io-app
+```
+
+Then connect your Craft.io account when prompted.
+
+Needs Cursor 3.13.0 or later — that is when plugin MCP support landed, and the
+manifest declares it, so older builds will not offer the plugin rather than
+installing it with a connector that never starts.
+
+### In Gemini CLI
+
+Gemini CLI installs an extension from a repository whose `gemini-extension.json`
+sits at the root. This repo is a multi-plugin marketplace, so `craft-guru` lives
+at `plugins/craft-guru/` — clone and link it:
+
+```
+git clone https://github.com/craft-io-app/craft-io-plugins
+gemini extensions link craft-io-plugins/plugins/craft-guru
+```
+
+`gemini extensions install <url>` takes "the GitHub URL or local path of the
+extension" and has no documented way to name a subdirectory, so it is not
+expected to work against this repo's root. If you would rather install than
+link, use the linked clone above and run `git pull` to update.
+
+Gemini discovers `skills/*/SKILL.md` natively, so you get the same six skills
+and the same connector as every other client.
 
 ### Troubleshooting
 
@@ -71,10 +109,14 @@ you point these skills at customer feedback.
 
 ```
 craft-io-plugins/
-├── .claude-plugin/marketplace.json   # marketplace catalog
+├── .claude-plugin/marketplace.json   # catalog — Claude Code
+├── .cursor-plugin/marketplace.json   # catalog — Cursor
 └── plugins/craft-guru/
-    ├── .claude-plugin/plugin.json
-    ├── .mcp.json                     # Craft.io MCP connector
+    ├── .claude-plugin/plugin.json    # manifest — Claude Code
+    ├── .cursor-plugin/plugin.json    # manifest — Cursor
+    ├── gemini-extension.json         # manifest — Gemini CLI
+    ├── .mcp.json                     # Craft.io MCP connector (Claude Code, Cursor)
+    ├── GEMINI.md                     # always-on context for Gemini CLI
     ├── README.md
     └── skills/
         ├── prd-generator/SKILL.md

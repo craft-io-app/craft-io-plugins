@@ -1,14 +1,16 @@
 {
   "name": "craft-io-app",
-  "description": "Official Craft.io plugins for Claude Code: the Craft.io MCP connector plus guided skills for everyday product-management work.",
   "owner": {
     "name": "Craft.io",
     "url": "https://www.craft.io"
   },
+  "metadata": {
+    "description": "Official Craft.io plugins for Cursor: the Craft.io MCP connector plus guided skills for everyday product-management work."
+  },
   "plugins": [
     {
       "name": "craft-guru",
-      "source": "./plugins/craft-guru",
+      "source": "plugins/craft-guru",
       "description": "Craft.io MCP connector plus guided product-work skills: generate PRDs, break them into stories, analyze customer feedback, find related items, write release notes, and run sprint planning.",
       "category": "productivity",
       "tags": [
@@ -18,9 +20,7 @@
         "roadmap",
         "feedback",
         "sprint-planning"
-      ],
-      "license": "MIT",
-      "homepage": "https://www.craft.io"
+      ]
     }
   ]
 }

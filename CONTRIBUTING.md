@@ -1,34 +1,77 @@
 # Contributing
 
-This repository is a public Claude Code plugin marketplace. Anything merged here
-is installable by Craft.io customers within minutes, so the bar is the same as
-for shipped product.
+This repository is a public plugin marketplace for Claude Code, Cursor and
+Gemini CLI. Anything merged here is installable by Craft.io customers within
+minutes, so the bar is the same as for shipped product.
+
+## One set of assets, three manifests
+
+The skills in `skills/` and the connector in `.mcp.json` are written once. Each
+client gets a thin manifest that points at them:
+
+| Client | Catalog | Manifest |
+|---|---|---|
+| Claude Code / Cowork | `.claude-plugin/marketplace.json` | `plugins/craft-guru/.claude-plugin/plugin.json` |
+| Cursor | `.cursor-plugin/marketplace.json` | `plugins/craft-guru/.cursor-plugin/plugin.json` |
+| Gemini CLI | — (installed by path) | `plugins/craft-guru/gemini-extension.json` |
+
+Both catalogs live at the **repository root** and name the plugin by
+subdirectory. A catalog nested inside a plugin directory is never found, because
+each client resolves a catalog's `source` entries from the repo root. CI rejects
+one in the wrong place.
+
+**Never fork a skill or the connector per client.** If a client needs something
+different, add it to that client's manifest, not to a second copy of the asset.
+CI cross-checks that every manifest points at the same MCP server names and the
+same endpoint URLs, in both directions.
 
 ## Add a skill
 
 1. Create `plugins/craft-guru/skills/<skill-name>/SKILL.md`.
 2. Write frontmatter with `name` (matching the directory) and `description`.
 3. Write the body.
-4. Run the checks below.
-5. Open a PR.
+4. Bump `version` in `.cursor-plugin/plugin.json` and `gemini-extension.json`
+   (see below).
+5. Run the checks below.
+6. Open a PR.
 
-No manifest edit is needed. The plugin does not pin a `version`, so Claude Code
-resolves the version from the commit SHA and every merge to `main` reaches
-existing installs on their next update. **Do not add a `version` field** to
-`plugin.json` or to the marketplace entry — setting it freezes the plugin, and
-users who already installed it stop receiving new skills. CI fails if either
-appears.
+## Versions differ by client, deliberately
+
+Claude Code resolves a plugin's version from the commit SHA, so
+`.claude-plugin/plugin.json` **must not** set `version` — pinning it freezes the
+plugin and users who already installed it stop receiving new skills. CI fails if
+a `version` appears there or in a marketplace entry.
+
+Cursor and Gemini CLI work the other way round: both resolve updates against the
+manifest `version`, and `gemini extensions update` compares against it directly.
+Those two manifests **must** set it, and CI fails if they don't. So a new skill
+needs a version bump in those two files and no edit at all to the Claude
+manifest. It is an asymmetry, not an oversight.
+
+CI enforces the bump, not just the field. If a PR touches `skills/` or
+`.mcp.json`, `check_version_bump.py` requires the Cursor and Gemini `version` to
+differ from the base branch. Without it, forgetting the bump ships your skill to
+Claude Code users and to nobody else, with every other check still green.
 
 ## Run the checks
 
 ```
-python3 .github/scripts/validate_plugins.py
+python3 .github/scripts/validate_plugins.py       # structure, safety, cross-manifest parity
+python3 .github/scripts/check_version_bump.py     # shared asset changed => Cursor/Gemini version bumped
+python3 .github/scripts/test_validate_plugins.py  # proves those rules actually fire
 claude plugin validate .
 claude plugin validate ./plugins/craft-guru
 ```
 
-Both report one warning — that no `version` is set. That is deliberate, per the
-note above, so don't pass `--strict` and don't "fix" it by adding a version.
+The second one matters more than it looks. Every rule the validator enforces is
+mutation-tested against a scratch copy of the repo — break the rule, assert the
+build goes red. A review once found seven rules that had silently never fired;
+each looked correct in the source, and a clean tree passed either way. If you add
+a rule, add its mutation.
+
+`claude plugin validate` reports one warning — that no `version` is set. That is
+deliberate, per the note above, so don't pass `--strict` and don't "fix" it by
+adding a version to the Claude manifest.
 
 Then load it for real before opening the PR:
 
@@ -68,7 +111,18 @@ may know what it was.
 **MCP servers are remote and HTTPS-only**, named in lower-case kebab-case.
 A `command` field would launch a local process; a name with other characters gets
 rewritten inside the `mcp__<server>__<tool>` prefix, which silently breaks user
-permission rules.
+permission rules. This applies to every manifest, including one that reaches its
+servers through a path reference — the referenced file is loaded and checked, not
+just resolved, because a rule enforced only on the file we happen to ship today
+is not enforced at all.
+
+**No `trust`.** Gemini CLI's `trust` key bypasses every tool-call confirmation,
+and that confirmation is the last control a user has once a server is installed.
+Gemini documents it as unsupported for extensions, so it would be inert — CI
+rejects it anyway, on any manifest.
+
+**Manifest paths stay inside the plugin.** Relative only: no absolute paths and
+no `..` traversal, which is also Cursor's own authoring rule.
 
 ## Writing a good skill
 

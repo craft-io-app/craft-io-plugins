@@ -10,9 +10,19 @@ jobs:
     name: structure and safety checks
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 so the base branch is present — the version-bump check
+      # diffs against it, and reports itself SKIPPED rather than passing if it
+      # cannot resolve one.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Validate marketplace, plugins and skills
         run: python3 .github/scripts/validate_plugins.py
+      - name: Require a version bump when shared assets change
+        if: github.event_name == 'pull_request'
+        run: python3 .github/scripts/check_version_bump.py "origin/${{ github.base_ref }}"
+      - name: Prove those rules actually fire
+        run: python3 .github/scripts/test_validate_plugins.py
 
   manifests:
     name: claude plugin validate
