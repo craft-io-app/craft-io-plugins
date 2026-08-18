@@ -18,3 +18,7 @@
 
 /.github/                           @craft-io-app/product @craft-io-app/be
 /SECURITY.md                        @craft-io-app/product @craft-io-app/be
+
+# Loaded automatically by coding agents working in this repo, so it steers what
+# they write here — including into the directories above.
+/AGENTS.md                          @craft-io-app/product @craft-io-app/be

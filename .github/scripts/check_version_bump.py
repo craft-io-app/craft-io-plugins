@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Require a version bump when a shipped asset changes.
 
-    python3 .github/scripts/check_version_bump.py [base-ref]
+    python3 .github/scripts/check_version_bump.py [base-ref] [--fix]
+
+`--fix` raises the versions this run would otherwise complain about, so nobody —
+person or agent — has to hold "which of three manifests needs what" in their
+head. CI never passes it: the gate stays a gate.
 
 The skills and the connector are written once and read by every client, but the
 clients do not agree on what a version is. Claude Code resolves a plugin's
@@ -24,6 +28,7 @@ in coverage, not a pass, so it says so rather than staying quiet.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -54,6 +59,7 @@ SHIPPED_ASSETS = {
 }
 
 errors: list[str] = []
+fixed: list[str] = []
 
 
 def git(*args: str) -> str | None:
@@ -88,8 +94,34 @@ def ordered(version: str | None) -> tuple[int, ...] | None:
     return tuple(int(p) for p in parts)
 
 
+def next_after(version: str | None) -> str | None:
+    """The smallest version above `version`, or None if it isn't dotted integers."""
+    parts = ordered(version)
+    if not parts:
+        return None
+    return ".".join(str(p) for p in parts[:-1] + (parts[-1] + 1,))
+
+
+def set_version(path: Path, value: str) -> bool:
+    """Rewrite just the version string, leaving the rest of the file byte-identical.
+
+    A json.dumps round-trip would reformat a hand-maintained manifest, so this
+    edits the one value in place. It refuses when the file holds more than one
+    `version` key, rather than guessing which was meant.
+    """
+    text = path.read_text()
+    pattern = r'("version"\s*:\s*)"[^"]*"'
+    if len(re.findall(pattern, text)) != 1:
+        return False
+    path.write_text(re.sub(pattern, lambda m: m.group(1) + json.dumps(value), text, count=1))
+    return True
+
+
 def main() -> int:
-    base = sys.argv[1] if len(sys.argv) > 1 else "origin/main"
+    argv = sys.argv[1:]
+    fix = "--fix" in argv
+    positional = [a for a in argv if not a.startswith("--")]
+    base = positional[0] if positional else "origin/main"
 
     if git("rev-parse", "--verify", f"{base}^{{commit}}") is None:
         print(f"notice: base ref {base!r} does not resolve — version-bump check SKIPPED, not passed.")
@@ -122,28 +154,46 @@ def main() -> int:
             if not existed:
                 continue  # new manifest — nothing to bump from
             new = json.loads((ROOT / path).read_text()).get("version")
+            old_t, new_t = ordered(old), ordered(new)
+
             if old == new:
-                errors.append(
-                    f"{path}: version is still {new!r}, but this change touches what it ships "
+                problem = (
+                    f"version is still {new!r}, but this change touches what it ships "
                     f"({', '.join(sorted(touched))}). {CLIENT[manifest]} resolves updates from "
                     "this field, so its users would never receive the change. Bump it."
                 )
+            elif old_t and new_t and new_t <= old_t:
+                problem = (
+                    f"version went backwards, {old!r} -> {new!r}. {CLIENT[manifest]} compares "
+                    "this field to decide an update exists, so a lower version ships to nobody "
+                    "just as surely as no bump at all."
+                )
+            else:
                 continue
 
-            old_t, new_t = ordered(old), ordered(new)
-            if old_t and new_t and new_t <= old_t:
-                errors.append(
-                    f"{path}: version went backwards, {old!r} -> {new!r}. {CLIENT[manifest]} "
-                    "compares this field to decide an update exists, so a lower version ships "
-                    "to nobody just as surely as no bump at all."
-                )
+            if not fix:
+                errors.append(f"{path}: {problem}")
+                continue
 
+            target = next_after(old)
+            if target is None or not set_version(ROOT / path, target):
+                errors.append(
+                    f"{path}: {problem} Could not fix it automatically — set the version by hand."
+                )
+            else:
+                fixed.append(f"{path}: {new!r} -> {target!r}")
+
+    for f in fixed:
+        print(f"bumped: {f}")
     for e in errors:
         print(f"error: {e}")
     if errors:
         print(f"\n{len(errors)} error(s)")
         return 1
-    print(f"ok — shared assets and client manifest versions are consistent with {base}")
+    if fixed:
+        print(f"\n{len(fixed)} version(s) bumped — review the diff and commit it.")
+        return 0
+    print(f"ok — shipped assets and client manifest versions are consistent with {base}")
     return 0
 
 

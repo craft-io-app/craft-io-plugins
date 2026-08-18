@@ -357,6 +357,68 @@ git_case(
 )
 
 
+# --- `--fix` must repair exactly what the gate rejects -----------------------
+#
+# A fixer that does not actually clear the error is worse than none: it looks
+# like the job is done. Each case asserts red before, green after, with no hand
+# editing in between.
+
+
+def version_of(root: Path, manifest: str):
+    return json.loads((root / PLUGIN / manifest).read_text()).get("version")
+
+
+def fix_case(name: str, mutate, expect=None) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp) / "repo"
+        shutil.copytree(ROOT, root, ignore=shutil.ignore_patterns(".git", ".reviews", "__pycache__"))
+        run = lambda *a: subprocess.run(["git", "-C", str(root), *a], capture_output=True, text=True)
+        run("init", "-q", "-b", "main")
+        run("config", "user.email", "t@example.com")
+        run("config", "user.name", "test")
+        run("add", "-A")
+        run("commit", "-q", "-m", "base")
+        base = run("rev-parse", "HEAD").stdout.strip()
+
+        mutate(root)
+        run("add", "-A")
+        run("commit", "-q", "-m", "change")
+
+        script = str(root / ".github/scripts/check_version_bump.py")
+        check = lambda *extra: subprocess.run(
+            [sys.executable, script, base, *extra], capture_output=True, text=True
+        )
+        before, repair, after = check(), check("--fix"), check()
+        ok = before.returncode != 0 and repair.returncode == 0 and after.returncode == 0
+        detail = f"before={before.returncode} fix={repair.returncode} after={after.returncode}"
+        if ok and expect is not None:
+            ok, extra = expect(root)
+            detail = extra or detail
+        results.append((ok, name, detail))
+
+
+fix_case("--fix supplies a forgotten bump", _add_skill)
+
+fix_case(
+    "--fix corrects a version that went backwards",
+    lambda root: (_add_skill(root),
+                  _set_version(root, "0.0.9", ".cursor-plugin/plugin.json", "gemini-extension.json")),
+)
+
+def _cursor_untouched(root: Path) -> tuple[bool, str]:
+    """The point of the per-asset map: a Gemini-only file bumps Gemini only."""
+    cursor = version_of(root, ".cursor-plugin/plugin.json")
+    gemini = version_of(root, "gemini-extension.json")
+    return cursor == "0.1.0" and gemini != "0.1.0", f"cursor={cursor} gemini={gemini}"
+
+
+fix_case(
+    "--fix bumps Gemini alone for a GEMINI.md change, leaving Cursor at 0.1.0",
+    lambda root: (root / PLUGIN / "GEMINI.md").write_text("# Craft.io\n\nchanged\n"),
+    expect=_cursor_untouched,
+)
+
+
 def main() -> int:
     failed = 0
     for ok, name, detail in results:
