@@ -30,10 +30,14 @@ same endpoint URLs, in both directions.
 1. Create `plugins/craft-guru/skills/<skill-name>/SKILL.md`.
 2. Write frontmatter with `name` (matching the directory) and `description`.
 3. Write the body.
-4. Bump `version` in `.cursor-plugin/plugin.json` and `gemini-extension.json`
-   (see below).
+4. Run `python3 .github/scripts/check_version_bump.py --fix` to raise the Cursor
+   and Gemini versions (see below), and commit the result with your change.
 5. Run the checks below.
 6. Open a PR.
+
+Working with an AI agent? [AGENTS.md](AGENTS.md) carries the same rules in the
+form agents load automatically, so they arrive knowing them rather than finding
+out from a red build.
 
 ## Versions differ by client, deliberately
 
@@ -49,16 +53,33 @@ needs a version bump in those two files and no edit at all to the Claude
 manifest. It is an asymmetry, not an oversight.
 
 CI enforces the bump, not just the field. If a PR touches `skills/` or
-`.mcp.json`, `check_version_bump.py` requires the Cursor and Gemini `version` to
-differ from the base branch. Without it, forgetting the bump ships your skill to
-Claude Code users and to nobody else, with every other check still green.
+`.mcp.json`, `check_version_bump.py` requires both the Cursor and the Gemini
+`version` to differ from the base branch. `GEMINI.md` requires the Gemini bump
+alone — it loads as always-on context in every Gemini session, so editing it
+changes what those users' agent sees, while Cursor never reads it at all.
+Without this, forgetting the bump ships your skill to Claude Code users and to
+nobody else, with every other check still green.
+
+## Merging is not shipping
+
+Getting the version right decides whether a client would *accept* an update. It
+does not make anyone fetch one. Claude Code keeps background auto-update off for
+third-party marketplaces, so a merge to `main` sits there until a user enables it
+or runs `/plugin marketplace update craft-io-app`. Gemini CLI users pull from
+their own clone.
+
+So a new skill is two jobs: merge it, then tell existing users how to get it. The
+user-facing instructions live in
+[the plugin README](plugins/craft-guru/README.md#staying-up-to-date) — point
+release notes and support replies at that section rather than restating it.
 
 ## Run the checks
 
 ```
-python3 .github/scripts/validate_plugins.py       # structure, safety, cross-manifest parity
-python3 .github/scripts/check_version_bump.py     # shared asset changed => Cursor/Gemini version bumped
-python3 .github/scripts/test_validate_plugins.py  # proves those rules actually fire
+python3 .github/scripts/validate_plugins.py         # structure, safety, cross-manifest parity
+python3 .github/scripts/check_version_bump.py       # shipped asset changed => that client's version bumped
+python3 .github/scripts/check_version_bump.py --fix # ...or just raise whatever is owed
+python3 .github/scripts/test_validate_plugins.py    # proves those rules actually fire
 claude plugin validate .
 claude plugin validate ./plugins/craft-guru
 ```

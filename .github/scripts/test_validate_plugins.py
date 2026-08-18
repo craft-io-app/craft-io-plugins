@@ -307,6 +307,43 @@ git_case(
     expect_error=False,
 )
 
+# GEMINI.md ships to users as always-on context, so it needs the same gate as a
+# skill — but only for the client that reads it.
+
+git_case(
+    "changing GEMINI.md without bumping Gemini is rejected",
+    lambda root: (root / PLUGIN / "GEMINI.md").write_text("# Craft.io\n\nchanged\n"),
+)
+
+git_case(
+    "changing GEMINI.md and bumping Gemini alone passes — Cursor never reads it",
+    lambda root: ((root / PLUGIN / "GEMINI.md").write_text("# Craft.io\n\nchanged\n"),
+                  _bump(root, "gemini-extension.json")),
+    expect_error=False,
+)
+
+# A version that moves backwards reads as "no update" to both clients, so it is
+# the same silent failure as forgetting to bump.
+
+
+def _set_version(root: Path, value: str, *manifests: str) -> None:
+    for m in manifests:
+        edit(root, f"{PLUGIN}/{m}", lambda d: d.__setitem__("version", value))
+
+
+git_case(
+    "adding a skill and lowering the version is rejected",
+    lambda root: (_add_skill(root),
+                  _set_version(root, "0.0.9", ".cursor-plugin/plugin.json", "gemini-extension.json")),
+)
+
+git_case(
+    "adding a skill and bumping to a higher version passes",
+    lambda root: (_add_skill(root),
+                  _set_version(root, "0.10.0", ".cursor-plugin/plugin.json", "gemini-extension.json")),
+    expect_error=False,
+)
+
 git_case(
     "a docs-only change needs no bump",
     lambda root: (root / "README.md").write_text("# changed\n"),
@@ -317,6 +354,68 @@ git_case(
     "an unresolvable base ref is reported as skipped, not passed",
     lambda root: None,
     expect_error=False,
+)
+
+
+# --- `--fix` must repair exactly what the gate rejects -----------------------
+#
+# A fixer that does not actually clear the error is worse than none: it looks
+# like the job is done. Each case asserts red before, green after, with no hand
+# editing in between.
+
+
+def version_of(root: Path, manifest: str):
+    return json.loads((root / PLUGIN / manifest).read_text()).get("version")
+
+
+def fix_case(name: str, mutate, expect=None) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp) / "repo"
+        shutil.copytree(ROOT, root, ignore=shutil.ignore_patterns(".git", ".reviews", "__pycache__"))
+        run = lambda *a: subprocess.run(["git", "-C", str(root), *a], capture_output=True, text=True)
+        run("init", "-q", "-b", "main")
+        run("config", "user.email", "t@example.com")
+        run("config", "user.name", "test")
+        run("add", "-A")
+        run("commit", "-q", "-m", "base")
+        base = run("rev-parse", "HEAD").stdout.strip()
+
+        mutate(root)
+        run("add", "-A")
+        run("commit", "-q", "-m", "change")
+
+        script = str(root / ".github/scripts/check_version_bump.py")
+        check = lambda *extra: subprocess.run(
+            [sys.executable, script, base, *extra], capture_output=True, text=True
+        )
+        before, repair, after = check(), check("--fix"), check()
+        ok = before.returncode != 0 and repair.returncode == 0 and after.returncode == 0
+        detail = f"before={before.returncode} fix={repair.returncode} after={after.returncode}"
+        if ok and expect is not None:
+            ok, extra = expect(root)
+            detail = extra or detail
+        results.append((ok, name, detail))
+
+
+fix_case("--fix supplies a forgotten bump", _add_skill)
+
+fix_case(
+    "--fix corrects a version that went backwards",
+    lambda root: (_add_skill(root),
+                  _set_version(root, "0.0.9", ".cursor-plugin/plugin.json", "gemini-extension.json")),
+)
+
+def _cursor_untouched(root: Path) -> tuple[bool, str]:
+    """The point of the per-asset map: a Gemini-only file bumps Gemini only."""
+    cursor = version_of(root, ".cursor-plugin/plugin.json")
+    gemini = version_of(root, "gemini-extension.json")
+    return cursor == "0.1.0" and gemini != "0.1.0", f"cursor={cursor} gemini={gemini}"
+
+
+fix_case(
+    "--fix bumps Gemini alone for a GEMINI.md change, leaving Cursor at 0.1.0",
+    lambda root: (root / PLUGIN / "GEMINI.md").write_text("# Craft.io\n\nchanged\n"),
+    expect=_cursor_untouched,
 )
 
 

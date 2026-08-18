@@ -97,6 +97,8 @@ and the same connector as every other client.
   if you're on a Team or Enterprise plan.
 - **Not sure what a skill does?** Describe your goal in plain language (for
   example, "what should we build next?") — Claude picks the right skill.
+- **Missing a skill you read about here?** Your client is probably still running
+  the version you installed. See [Staying up to date](#staying-up-to-date).
 
 ## What gets installed
 
@@ -104,6 +106,20 @@ One MCP connector and six skills. Nothing else — no hooks, no agents, no
 scripts, nothing that runs code on your machine. See [SECURITY.md](SECURITY.md)
 for the full picture, including the one trust boundary worth understanding before
 you point these skills at customer feedback.
+
+## Staying up to date
+
+New skills ship as commits here, but no client fetches them on its own by
+default. One step, once:
+
+- **Claude Code** keeps auto-update off for third-party marketplaces. Run
+  `/plugin`, open **Marketplaces**, select `craft-io-app` and choose **Enable
+  auto-update** — or pull the latest on demand with
+  `/plugin marketplace update craft-io-app`. Admins can set `"autoUpdate": true`
+  on the marketplace entry in managed settings to do this for everyone.
+- **Cursor** updates when the plugin manifest's `version` changes.
+- **Gemini CLI** reads a linked extension from your clone, so `git pull` there is
+  the update.
 
 ## Repository layout
 

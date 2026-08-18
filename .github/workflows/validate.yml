@@ -18,9 +18,16 @@ jobs:
           fetch-depth: 0
       - name: Validate marketplace, plugins and skills
         run: python3 .github/scripts/validate_plugins.py
-      - name: Require a version bump when shared assets change
-        if: github.event_name == 'pull_request'
-        run: python3 .github/scripts/check_version_bump.py "origin/${{ github.base_ref }}"
+      # Runs on push as well as on pull_request. A rule enforced only on the PR
+      # path is not enforced: a direct push to main skips it entirely, and that
+      # is exactly the commit nobody reviews. On push the base is the commit main
+      # pointed at before, so a merge re-checks what its PR already proved and a
+      # direct push gets checked for the first time. An unresolvable base (a new
+      # branch, a force-push) reports itself SKIPPED rather than passing.
+      - name: Require a version bump when shipped assets change
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+        run: python3 .github/scripts/check_version_bump.py "$BASE"
       - name: Prove those rules actually fire
         run: python3 .github/scripts/test_validate_plugins.py
 
