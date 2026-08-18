@@ -307,6 +307,43 @@ git_case(
     expect_error=False,
 )
 
+# GEMINI.md ships to users as always-on context, so it needs the same gate as a
+# skill — but only for the client that reads it.
+
+git_case(
+    "changing GEMINI.md without bumping Gemini is rejected",
+    lambda root: (root / PLUGIN / "GEMINI.md").write_text("# Craft.io\n\nchanged\n"),
+)
+
+git_case(
+    "changing GEMINI.md and bumping Gemini alone passes — Cursor never reads it",
+    lambda root: ((root / PLUGIN / "GEMINI.md").write_text("# Craft.io\n\nchanged\n"),
+                  _bump(root, "gemini-extension.json")),
+    expect_error=False,
+)
+
+# A version that moves backwards reads as "no update" to both clients, so it is
+# the same silent failure as forgetting to bump.
+
+
+def _set_version(root: Path, value: str, *manifests: str) -> None:
+    for m in manifests:
+        edit(root, f"{PLUGIN}/{m}", lambda d: d.__setitem__("version", value))
+
+
+git_case(
+    "adding a skill and lowering the version is rejected",
+    lambda root: (_add_skill(root),
+                  _set_version(root, "0.0.9", ".cursor-plugin/plugin.json", "gemini-extension.json")),
+)
+
+git_case(
+    "adding a skill and bumping to a higher version passes",
+    lambda root: (_add_skill(root),
+                  _set_version(root, "0.10.0", ".cursor-plugin/plugin.json", "gemini-extension.json")),
+    expect_error=False,
+)
+
 git_case(
     "a docs-only change needs no bump",
     lambda root: (root / "README.md").write_text("# changed\n"),

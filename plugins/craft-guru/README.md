@@ -26,11 +26,9 @@ The per-client manifests (`.claude-plugin/plugin.json`, `.cursor-plugin/plugin.j
 - `sprint-planning` — Runs a full sprint/iteration planning workflow: capacity review, goal synthesis, story point estimation, load balancing and risk identification.
 
 More skills land over time. Adding one needs no manifest change on any client — a
-new `skills/<name>/SKILL.md` folder is enough. In Claude Code the plugin doesn't
-pin a version, so each merge to `main` reaches existing installs on their next
-update. Cursor and Gemini CLI resolve updates against the manifest `version`
-instead, so those two need a version bump to ship a new skill; see
-[CONTRIBUTING.md](../../CONTRIBUTING.md).
+new `skills/<name>/SKILL.md` folder is enough. Whether a new skill reaches you is
+a separate question from whether it has shipped, and the answer differs by
+client; see [Staying up to date](#staying-up-to-date).
 
 ## Requirements
 
@@ -64,6 +62,28 @@ Craft.io account. No org-level admin step is required in Claude Code.
 Through claude.ai in a Team or Enterprise organization, an Owner or Admin must
 first enable the Craft.io connector in Admin Settings before individual members
 can connect their accounts.
+
+## Staying up to date
+
+**Claude Code** keeps background auto-update off for third-party marketplaces,
+and this is one, so a new skill does not arrive on its own. Turn it on once: run
+`/plugin`, open the **Marketplaces** tab, select `craft-io-app` and choose
+**Enable auto-update**. To pull the latest right now instead:
+
+```
+/plugin marketplace update craft-io-app
+```
+
+Either way the new version loads on your next launch, or immediately if you run
+`/reload-plugins`. If your organization manages Claude Code settings, an admin
+can set `"autoUpdate": true` on the marketplace entry once and nobody has to do
+this themselves.
+
+**Cursor** compares the `version` in the plugin manifest and updates when it
+changes.
+
+**Gemini CLI** reads a linked extension straight from your clone, so `git pull`
+in that clone is the update.
 
 ## Using the skills
 
