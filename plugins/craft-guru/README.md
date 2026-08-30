@@ -38,12 +38,17 @@ client; see [Staying up to date](#staying-up-to-date).
 
 ## Installing
 
-**Claude Code, Cowork and Cursor** read a marketplace catalog from this repo's
-root, so the commands are the same in all three:
+**Claude Code and Cowork** read a marketplace catalog from this repo's root:
 
 ```
 /plugin marketplace add craft-io-app/craft-io-plugins
 /plugin install craft-guru@craft-io-app
+```
+
+**Cursor** installs the plugin from the repository URL, in one command:
+
+```
+/add-plugin https://github.com/craft-io-app/craft-io-plugins
 ```
 
 **Gemini CLI** installs an extension from a repository root, and this repo is a
@@ -54,10 +59,28 @@ git clone https://github.com/craft-io-app/craft-io-plugins
 gemini extensions link craft-io-plugins/plugins/craft-guru
 ```
 
+On newer Gemini CLI and Antigravity builds, loading the extension prints a
+deprecation notice about the `httpUrl` property in `gemini-extension.json`. It is
+cosmetic — `httpUrl` is the field Gemini CLI documents for a streamable-HTTP MCP
+server, the connector still loads through the fallback, and every skill and tool
+works normally.
+
 ## Connecting to Craft.io
 
-After installing, run `/mcp` and follow the OAuth prompt to connect your own
-Craft.io account. No org-level admin step is required in Claude Code.
+Connecting is per user and takes one step — but the step belongs to the client,
+so it differs between them.
+
+**Claude Code and Cowork:** run `/mcp` and follow the OAuth prompt to connect
+your own Craft.io account. No org-level admin step is required in Claude Code.
+
+**Cursor:** approve the `craft-io` server when Cursor offers it after install,
+then sign in to Craft.io in the browser window it opens.
+
+**Gemini CLI:** run `/mcp auth craft-io`. `/mcp` on its own only lists servers
+there — starting the OAuth flow with it is Claude Code behaviour, not Gemini's.
+If your build has no `auth` subcommand, ask any question that needs Craft data:
+the server replies with a 401 challenge and Gemini opens the same browser
+sign-in.
 
 Through claude.ai in a Team or Enterprise organization, an Owner or Admin must
 first enable the Craft.io connector in Admin Settings before individual members

@@ -11,12 +11,20 @@ forked per client; each one gets a thin manifest pointing at the same files.
 
 ## Install
 
+In **Claude Code and Cowork**:
+
 ```
 /plugin marketplace add craft-io-app/craft-io-plugins
 /plugin install craft-guru@craft-io-app
 ```
 
-Then run `/mcp` and sign in to connect your Craft.io account.
+In **Cursor**, one command:
+
+```
+/add-plugin https://github.com/craft-io-app/craft-io-plugins
+```
+
+Then connect your Craft.io account — the step differs by client, see below.
 
 See [`plugins/craft-guru/README.md`](plugins/craft-guru/README.md) for what each
 skill does.
@@ -55,15 +63,14 @@ No coding or technical setup required — this takes about a minute.
 
 ### In Cursor
 
-Cursor reads the catalog at `.cursor-plugin/marketplace.json` in this repo's
-root, the same way Claude Code reads `.claude-plugin/marketplace.json`:
+Cursor installs the plugin straight from the repository URL, in one command:
 
 ```
-/plugin marketplace add craft-io-app/craft-io-plugins
-/plugin install craft-guru@craft-io-app
+/add-plugin https://github.com/craft-io-app/craft-io-plugins
 ```
 
-Then connect your Craft.io account when prompted.
+Approve the `craft-io` server when Cursor offers it, then sign in to Craft.io in
+the browser window that opens.
 
 Needs Cursor 3.13.0 or later — that is when plugin MCP support landed, and the
 manifest declares it, so older builds will not offer the plugin rather than
@@ -88,10 +95,23 @@ link, use the linked clone above and run `git pull` to update.
 Gemini discovers `skills/*/SKILL.md` natively, so you get the same six skills
 and the same connector as every other client.
 
+To connect your account, run `/mcp auth craft-io`. `/mcp` on its own only lists
+servers there — starting the OAuth flow with it is Claude Code behaviour, not
+Gemini's. If your build has no `auth` subcommand, ask any question that needs
+Craft data: the server replies with a 401 challenge and Gemini opens the same
+browser sign-in.
+
+On newer Gemini CLI and Antigravity builds, loading the extension prints a
+deprecation notice about the `httpUrl` property in `gemini-extension.json`. It is
+cosmetic — `httpUrl` is the field Gemini CLI documents for a streamable-HTTP MCP
+server, the connector still loads through the fallback, and every skill and tool
+works normally.
+
 ### Troubleshooting
 
-- **Don't see the plugin after adding the marketplace?** Check you typed
-  `craft-io-app/craft-io-plugins` exactly, then re-run the install command.
+- **Don't see the plugin after adding it?** In Claude Code or Cowork, check you
+  typed `craft-io-app/craft-io-plugins` exactly and re-run the install command.
+  In Cursor, check the full repository URL.
 - **Craft.io connection fails?** Make sure you're signing in with the Craft.io
   account tied to your workspace, and that your admin has enabled the connector
   if you're on a Team or Enterprise plan.
